@@ -47,16 +47,30 @@ def get_conversation_chain(vectorstore):
   )
   return conversation_chain
 
-def handle_userinput(user_question):
-  response=st.session_state.conversation({'question':user_question})
- 
-  st.session_state.chat_history =response['chat_history']
 
-  for i,message in enumerate(st.session_state.chat_history):
-   if i % 2 == 0:
-     st.write(user_template.replace("{{MSG}}",message.content),unsafe_allow_html=True)
-   else:
-     st.write(bot_template.replace("{{MSG}}",message.content),unsafe_allow_html=True)
+def handle_userinput(user_question):
+  if st.session_state.conversation is not None:
+  
+    response=st.session_state.conversation({'question':user_question})
+ 
+    st.session_state.chat_history =response['chat_history']
+    print(st.session_state.chat_history)
+  
+    for i,message in enumerate(st.session_state.chat_history):
+      content = message.content  # Get the content of the message
+      if isinstance(content, tuple):  # Check if the content is a tuple
+        content = ' '.join(content)  # Join the elements of the tuple into a single string
+      if i % 2 == 0:
+        st.write(user_template.replace("{{MSG}}", content), unsafe_allow_html=True)
+      else:
+        st.write(bot_template.replace("{{MSG}}", content), unsafe_allow_html=True)
+    
+  else:
+        # Handle the case where st.session_state.conversation is None
+        # e.g., display a message asking the user to upload a PDF and click "Process"
+        st.write("Please upload a PDF and click 'Process' before asking a question.")
+
+
 
 def main():
    load_dotenv()
@@ -83,18 +97,15 @@ def main():
        pdf_docs= st.file_uploader(" Drag and drop your PDF here. Then click on 'Process'", type=["PDF"], accept_multiple_files=True)
        if st.button("Process"):
         with st.spinner("Processing..."):
-           raw_text = get_pdf_text(pdf_docs)
-           st.write(raw_text)
+          raw_text = get_pdf_text(pdf_docs)
+          st.write(raw_text)
 
-           text_chunks=get_text_chunks(raw_text)
-           st.write(text_chunks)
-           vectorstore=get_vectorstore(text_chunks)
+          text_chunks=get_text_chunks(raw_text)
+          st.write(text_chunks)
+          vectorstore=get_vectorstore(text_chunks)
 
-           st.session_state.conversation = get_conversation_chain(vectorstore)
-
-
-               
-
+          st.session_state.conversation = get_conversation_chain(vectorstore)
+          st.success("Done! Now ask your question in the text box on the left.")
 
 if __name__ == "__main__":
     main() 
