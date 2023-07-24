@@ -16,8 +16,12 @@ def get_pdf_text(pdf_docs):
    pdf_reader = PdfReader(pdf_doc)
    for page in pdf_reader.pages:
     text+=page.extract_text()
-    
-   return text
+    if text == "":
+     st.error("No text found in the PDF. Please upload another PDF.")
+     st.stop()
+    else:
+       return text
+  
 
 def get_text_chunks(raw_text):
    text_splitter = CharacterTextSplitter(
@@ -58,6 +62,8 @@ def handle_userinput(user_question):
    else:
      st.write(bot_template.replace("{{MSG}}",message.content),unsafe_allow_html=True)
 
+
+
 def main():
    load_dotenv()
    st.set_page_config(page_title="Chat with PDF 💾" ) 
@@ -83,6 +89,7 @@ def main():
        pdf_docs= st.file_uploader(" Drag and drop your PDF here. Then click on 'Process'", type=["PDF"], accept_multiple_files=True)
        if st.button("Process"):
         with st.spinner("Processing..."):
+<<<<<<< Updated upstream
            raw_text = get_pdf_text(pdf_docs)
            st.write(raw_text)
 
@@ -92,6 +99,13 @@ def main():
 
            st.session_state.conversation = get_conversation_chain(vectorstore)
 
+=======
+          if pdf_docs is None or len(pdf_docs) == 0:
+            st.error("No PDF uploaded. Please upload a PDF.")
+            st.stop()
+          raw_text = get_pdf_text(pdf_docs)
+          st.write(raw_text)
+>>>>>>> Stashed changes
 
                
 
